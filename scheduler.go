@@ -29,7 +29,7 @@ func (m *Manager) AddTask(task *Task, autoStart bool) error {
 
 	if _, exists := m.taskMap.Load(task.ID); exists {
 
-		return fmt.Errorf("task id %s already exists", task.ID)
+		return fmt.Errorf("%w: %s", ErrTaskAlreadyExists, task.ID)
 	}
 
 	m.taskMap.Store(task.ID, task)
@@ -37,7 +37,7 @@ func (m *Manager) AddTask(task *Task, autoStart bool) error {
 	if autoStart {
 
 		if atomic.LoadUint32(&task.running) == 1 {
-			return fmt.Errorf("task id %s already is running", task.ID)
+			return fmt.Errorf("%w: %s", ErrTaskAlreadyRunning, task.ID)
 		}
 
 		task.Start()
@@ -103,13 +103,13 @@ func (m *Manager) StopTask(id string) error {
 		if atomic.LoadUint32(&task.(*Task).running) == 1 {
 			task.(*Task).Stop()
 		} else {
-			return fmt.Errorf("task id %s was not running (stop)", id)
+			return fmt.Errorf("%w: %s (stop)", ErrTaskAlreadyStopped, id)
 		}
 
 		return nil
 	}
 
-	return fmt.Errorf("task id %s does not exists (stop)", id)
+	return fmt.Errorf("%w: %s (stop)", ErrTaskNotExists, id)
 }
 
 // StartTask - starts a task
@@ -120,13 +120,13 @@ func (m *Manager) StartTask(id string) error {
 		if atomic.LoadUint32(&task.(*Task).running) == 0 {
 			task.(*Task).Start()
 		} else {
-			return fmt.Errorf("task id %s is already running (start)", id)
+			return fmt.Errorf("%w: %s (start)", ErrTaskAlreadyRunning, id)
 		}
 
 		return nil
 	}
 
-	return fmt.Errorf("task id %s does not exists (start)", id)
+	return fmt.Errorf("%w: %s (start)", ErrTaskNotExists, id)
 }
 
 // GetNumTasks - returns the number of tasks
