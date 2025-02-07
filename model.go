@@ -10,15 +10,19 @@ type manager struct {
 	taskMap sync.Map
 }
 
-// Job - a job to be executed
-type job func()
-
 // Task - a scheduled task
 type Task struct {
 	ID       string
 	Duration time.Duration
-	Job      job
+	Job      any
 	running  uint32
+}
+
+// Job - the job interface
+type Job interface {
+
+	// Execute - implements a function to be executed
+	Execute()
 }
 
 // Manager - the scheduler manager interface
