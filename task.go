@@ -10,19 +10,6 @@ import (
 // author: rnojiri
 //
 
-// Job - a job to be executed
-type job interface {
-	Execute()
-}
-
-// Task - a scheduled task
-type Task struct {
-	ID       string
-	Duration time.Duration
-	Job      job
-	running  uint32
-}
-
 // NewTask - creates a new task
 func NewTask(id string, duration time.Duration, job job) *Task {
 
@@ -49,7 +36,7 @@ func (t *Task) Start() {
 				return
 			}
 
-			t.Job.Execute()
+			t.Job()
 		}
 	}()
 

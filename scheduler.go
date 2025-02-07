@@ -11,21 +11,16 @@ import (
 // author: rnojiri
 //
 
-// Manager - schedules all expression executions
-type Manager struct {
-	taskMap sync.Map
-}
-
 // New - creates a new scheduler
-func New() *Manager {
+func New() Manager {
 
-	return &Manager{
+	return &manager{
 		taskMap: sync.Map{},
 	}
 }
 
 // AddTask - adds a new task
-func (m *Manager) AddTask(task *Task, autoStart bool) error {
+func (m *manager) AddTask(task *Task, autoStart bool) error {
 
 	if _, exists := m.taskMap.Load(task.ID); exists {
 
@@ -47,7 +42,7 @@ func (m *Manager) AddTask(task *Task, autoStart bool) error {
 }
 
 // Exists - checks if a task exists
-func (m *Manager) Exists(id string) bool {
+func (m *manager) Exists(id string) bool {
 
 	_, exists := m.taskMap.Load(id)
 
@@ -55,7 +50,7 @@ func (m *Manager) Exists(id string) bool {
 }
 
 // IsRunning - checks if a task is running
-func (m *Manager) IsRunning(id string) bool {
+func (m *manager) IsRunning(id string) bool {
 
 	task, exists := m.taskMap.Load(id)
 
@@ -68,7 +63,7 @@ func (m *Manager) IsRunning(id string) bool {
 }
 
 // RemoveTask - removes a task
-func (m *Manager) RemoveTask(id string) bool {
+func (m *manager) RemoveTask(id string) bool {
 
 	if task, exists := m.taskMap.Load(id); exists {
 
@@ -83,7 +78,7 @@ func (m *Manager) RemoveTask(id string) bool {
 }
 
 // RemoveAllTasks - removes all tasks
-func (m *Manager) RemoveAllTasks() {
+func (m *manager) RemoveAllTasks() {
 
 	m.taskMap.Range(func(k, v interface{}) bool {
 
@@ -96,7 +91,7 @@ func (m *Manager) RemoveAllTasks() {
 }
 
 // StopTask - stops a task
-func (m *Manager) StopTask(id string) error {
+func (m *manager) StopTask(id string) error {
 
 	if task, exists := m.taskMap.Load(id); exists {
 
@@ -113,7 +108,7 @@ func (m *Manager) StopTask(id string) error {
 }
 
 // StartTask - starts a task
-func (m *Manager) StartTask(id string) error {
+func (m *manager) StartTask(id string) error {
 
 	if task, exists := m.taskMap.Load(id); exists {
 
@@ -130,7 +125,7 @@ func (m *Manager) StartTask(id string) error {
 }
 
 // GetNumTasks - returns the number of tasks
-func (m *Manager) GetNumTasks() int {
+func (m *manager) GetNumTasks() int {
 
 	var length int
 
@@ -143,7 +138,7 @@ func (m *Manager) GetNumTasks() int {
 }
 
 // GetTasksIDs - returns a list of task IDs
-func (m *Manager) GetTasksIDs() []string {
+func (m *manager) GetTasksIDs() []string {
 
 	tasks := []string{}
 
@@ -156,12 +151,12 @@ func (m *Manager) GetTasksIDs() []string {
 }
 
 // GetTasks - returns a list of tasks
-func (m *Manager) GetTasks() []interface{} {
+func (m *manager) GetTasks() []*Task {
 
-	tasks := []interface{}{}
+	tasks := []*Task{}
 
 	m.taskMap.Range(func(_, v interface{}) bool {
-		tasks = append(tasks, v)
+		tasks = append(tasks, v.(*Task))
 		return true
 	})
 
@@ -169,11 +164,10 @@ func (m *Manager) GetTasks() []interface{} {
 }
 
 // GetTask - returns a task by it's ID
-func (m *Manager) GetTask(id string) interface{} {
+func (m *manager) GetTask(id string) *Task {
 
 	if t, ok := m.taskMap.Load(id); ok {
-
-		return t
+		return t.(*Task)
 	}
 
 	return nil
