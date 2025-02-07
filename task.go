@@ -11,7 +11,8 @@ import (
 //
 
 // NewTask - creates a new task
-func NewTask(id string, duration time.Duration, job job) *Task {
+// job should be a func() or implements the interface scheduler.Job
+func NewTask(id string, duration time.Duration, job any) *Task {
 
 	return &Task{
 		ID:       id,
@@ -36,7 +37,15 @@ func (t *Task) Start() {
 				return
 			}
 
-			t.Job()
+			if f, casted := t.Job.(func()); casted {
+				f()
+				continue
+			}
+
+			if f, casted := t.Job.(Job); casted {
+				f.Execute()
+				continue
+			}
 		}
 	}()
 

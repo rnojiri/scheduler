@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTaskAutoStarting(t *testing.T) {
+func TestFuncTaskAutoStarting(t *testing.T) {
 
 	count := 0
 
@@ -35,7 +35,7 @@ func TestTaskAutoStarting(t *testing.T) {
 	assert.Equal(t, 2, count, "expected the count to be: 2")
 }
 
-func TestTaskStartingManually(t *testing.T) {
+func TestFuncTaskStartingManually(t *testing.T) {
 
 	count := 0
 
@@ -126,4 +126,58 @@ func TestGetTasks(t *testing.T) {
 
 	tasksStored := m.GetTasks()
 	assert.ElementsMatch(t, tasks, tasksStored, "expects the same tasks stored")
+}
+
+type someTask struct {
+	count int
+}
+
+func (st *someTask) Execute() {
+	st.count++
+}
+
+func TestStructTaskAutoStarting(t *testing.T) {
+
+	st := &someTask{}
+
+	task := scheduler.NewTask("foo", 10*time.Millisecond, st)
+
+	m := scheduler.New()
+	err := m.AddTask(task, true)
+	assert.NoError(t, err, "expected no error adding task")
+
+	assert.Equal(t, 1, m.GetNumTasks(), "expects only one task stored")
+	assert.True(t, m.IsRunning("foo"), "expected the task to be running")
+
+	<-time.After(11 * time.Millisecond)
+	assert.Equal(t, 1, st.count, "expected the count to be: 1")
+
+	<-time.After(5 * time.Millisecond)
+	assert.Equal(t, 1, st.count, "expected the count to not be incremented")
+
+	<-time.After(10 * time.Millisecond)
+	assert.Equal(t, 2, st.count, "expected the count to be: 2")
+}
+
+func TestStructTaskStartingManually(t *testing.T) {
+
+	st := &someTask{}
+
+	task := scheduler.NewTask("foo", 10*time.Millisecond, st)
+
+	m := scheduler.New()
+	err := m.AddTask(task, false)
+	assert.NoError(t, err, "expected no error adding task")
+
+	assert.Equal(t, 1, m.GetNumTasks(), "expects only one task stored")
+	assert.False(t, m.IsRunning("foo"), "expected the task to not be running")
+
+	<-time.After(11 * time.Millisecond)
+	assert.Zero(t, st.count, "expected the count to not be incremented")
+
+	err = m.StartTask("foo")
+	assert.NoError(t, err, "expected no error starting task")
+
+	<-time.After(11 * time.Millisecond)
+	assert.Equal(t, 1, st.count, "expected the count to be: 1")
 }
