@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -20,6 +20,5 @@ jobs:
     - name: Run go vet
       run: go vet ./...
 
-    # no tests to run
-    # - name: Run tests
-    # run: go test -count 1 -v -timeout 1m ./...
+    - name: Run tests
+      run: go test -v -p 1 -count 1 -timeout 120s ./...
